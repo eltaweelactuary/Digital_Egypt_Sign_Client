@@ -270,23 +270,13 @@
             if (!running) return;
             if (botBusy) { setTimeout(loop, 500); return; }
 
-            // Capture 2 frames for motion detection (fast)
+            // Capture 1 frame for ultra-fast testing (as requested)
             var frames = [];
-            var captureIndex = 0;
+            cx.drawImage(vid, 0, 0, 512, 512);
+            frames.push(cv.toDataURL('image/jpeg', 0.4));
 
-            function captureNext() {
-                if (!running) return;
-                cx.drawImage(vid, 0, 0, 512, 512);
-                frames.push(cv.toDataURL('image/jpeg', 0.4));
-                captureIndex++;
-
-                if (captureIndex < 2) {
-                    setTimeout(captureNext, 200);
-                } else {
-                    sendFrames(frames);
-                }
-            }
-            captureNext();
+            // Send immediately without waiting
+            sendFrames(frames);
         }
 
         function sendFrames(frames) {
