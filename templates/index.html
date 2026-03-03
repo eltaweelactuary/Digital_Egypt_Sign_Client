@@ -3,100 +3,60 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-width=1.0">
-    <title>مصر الرقمية — خدمة العملاء (لغة الإشارة)</title>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مصر الرقمية — خدمة العملاء بلغة الإشارة</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #A31B21;
-            /* Digital Egypt Red */
-            --bg: #F5F7FA;
-            --chat-bg: #FFFFFF;
+            --red: #A31B21;
+            --dark: #1a1a2e;
+            --glass: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
 
         body {
             font-family: 'Cairo', sans-serif;
-            background-color: var(--bg);
-            margin: 0;
-            padding: 0;
-            display: flex;
+            background: var(--dark);
+            color: #fff;
             height: 100vh;
-        }
-
-        .sidebar {
-            width: 350px;
-            background: #fff;
-            border-left: 1px solid #ddd;
             display: flex;
-            flex-direction: column;
-            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
         }
 
-        .header {
-            background: var(--primary);
-            color: #fff;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header h2 {
-            margin: 0;
-            font-size: 1.2rem;
-        }
-
-        .header p {
-            margin: 5px 0 0;
-            font-size: 0.9rem;
-            opacity: 0.8;
-        }
-
-        .chat-box {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-        }
-
-        .msg {
-            max-width: 85%;
-            padding: 12px 16px;
-            border-radius: 12px;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        .bot {
-            background: #f1f3f5;
-            align-self: flex-start;
-            border-top-right-radius: 0;
-        }
-
-        .user {
-            background: var(--primary);
-            color: #fff;
-            align-self: flex-end;
-            border-top-left-radius: 0;
-        }
-
-        .main-content {
+        /* === LEFT: Video + Translation === */
+        .video-side {
             flex: 1;
             display: flex;
             flex-direction: column;
-            padding: 30px;
             align-items: center;
             justify-content: center;
+            padding: 30px;
+            gap: 20px;
         }
 
-        .video-container {
+        .brand {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--red);
+        }
+
+        .brand span {
+            color: #fff;
+            font-weight: 400;
+        }
+
+        .video-wrap {
             width: 100%;
-            max-width: 600px;
-            background: #000;
+            max-width: 640px;
             border-radius: 16px;
             overflow: hidden;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            background: #000;
+            box-shadow: 0 0 40px rgba(163, 27, 33, 0.3);
         }
 
         video {
@@ -105,56 +65,137 @@
             transform: scaleX(-1);
         }
 
-        .status {
+        /* Live translation overlay on the video */
+        .translation-overlay {
             position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.6);
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            padding: 30px 20px 20px;
+            text-align: center;
+        }
+
+        .translation-text {
+            font-size: 2rem;
+            font-weight: 700;
             color: #00ff88;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: bold;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+            min-height: 40px;
+            transition: all 0.3s ease;
+        }
+
+        .translation-text.waiting {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 1.2rem;
+            font-weight: 400;
         }
 
         .controls {
-            margin-top: 20px;
             display: flex;
             gap: 15px;
-            width: 100%;
-            max-width: 600px;
+            align-items: center;
         }
 
-        input,
-        button {
-            padding: 12px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-family: inherit;
-        }
-
-        input {
-            flex: 1;
-            font-size: 1rem;
-        }
-
-        button {
-            background: var(--primary);
-            color: white;
+        .btn {
+            padding: 14px 40px;
             border: none;
+            border-radius: 50px;
+            font-family: inherit;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
-            font-weight: bold;
-            padding: 0 24px;
+            transition: all 0.3s ease;
         }
 
-        button:disabled {
-            background: #999;
+        .btn-start {
+            background: var(--red);
+            color: #fff;
         }
 
-        .powered-by {
-            margin-top: 30px;
-            color: #777;
+        .btn-start:hover {
+            background: #c0232a;
+            transform: scale(1.05);
+        }
+
+        .btn-stop {
+            background: #333;
+            color: #fff;
+        }
+
+        .powered {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 0.8rem;
+        }
+
+        /* === RIGHT: Chat Log === */
+        .chat-side {
+            width: 380px;
+            background: rgba(255, 255, 255, 0.03);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-header {
+            background: var(--red);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .chat-header h2 {
+            font-size: 1.1rem;
+            margin: 0;
+        }
+
+        .chat-header p {
             font-size: 0.85rem;
+            opacity: 0.7;
+            margin: 5px 0 0;
+        }
+
+        .chat-log {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .msg {
+            max-width: 90%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg.bot {
+            background: rgba(255, 255, 255, 0.08);
+            align-self: flex-start;
+            border-top-right-radius: 0;
+            color: #ccc;
+        }
+
+        .msg.user {
+            background: var(--red);
+            align-self: flex-end;
+            border-top-left-radius: 0;
+            color: #fff;
         }
     </style>
 </head>
@@ -162,185 +203,175 @@
 <body>
 
     <!-- Chat Sidebar -->
-    <div class="sidebar">
-        <div class="header">
-            <h2>مصر الرقمية (Digital Egypt)</h2>
-            <p>مساعد خدمة العملاء بلغة الإشارة</p>
+    <div class="chat-side">
+        <div class="chat-header">
+            <h2>سجل المحادثة</h2>
+            <p>ترجمة لغة الإشارة ← رد خدمة العملاء</p>
         </div>
-        <div class="chat-box" id="chat">
-            <div class="msg bot">مرحباً بك في مصر الرقمية. كيف يمكنني مساعدتك اليوم؟ (تفضل بعمل لغة إشارة أمام الكاميرا)
-            </div>
+        <div class="chat-log" id="chat">
+            <div class="msg bot">مرحباً بك في مصر الرقمية! تفضل بعمل إشارة أمام الكاميرا وسأساعدك فوراً.</div>
         </div>
     </div>
 
-    <!-- Main Video Section -->
-    <div class="main-content">
-        <div class="video-container">
+    <!-- Video + Live Translation -->
+    <div class="video-side">
+        <div class="brand">🇪🇬 مصر الرقمية <span>| خدمة العملاء</span></div>
+
+        <div class="video-wrap">
             <video id="vid" autoplay playsinline muted></video>
-            <div class="status" id="status">جاري بدء الكاميرا...</div>
+            <div class="translation-overlay">
+                <div class="translation-text waiting" id="liveText">في انتظار إشارة ...</div>
+            </div>
         </div>
 
         <div class="controls">
-            <input type="text" id="api-url" value="http://localhost:8000/api/v1/translate"
-                placeholder="Wasel SaaS API URL">
-            <input type="password" id="api-key" value="demo_client_key_123" placeholder="SaaS API Key">
-            <button id="toggle-btn" onclick="toggleEngine()">ابدأ الترجمة</button>
+            <button class="btn btn-start" id="mainBtn" onclick="toggle()">▶ تشغيل الترجمة</button>
         </div>
-        <div class="powered-by">Powered by <b>Wasel Core AI Engine (B2B SaaS)</b></div>
+        <div class="powered">Powered by Wasel Core AI Engine (SaaS)</div>
     </div>
 
-    <!-- Hidden Canvas for capture -->
-    <canvas id="canvas" width="512" height="512" style="display:none;"></canvas>
+    <canvas id="c" width="512" height="512" style="display:none"></canvas>
 
     <script>
-        const video = document.getElementById('vid');
-        const canvas = document.getElementById('canvas');
-        const ctx = canvas.getContext('2d');
-        const statusEl = document.getElementById('status');
-        const chatBox = document.getElementById('chat');
-        const urlInput = document.getElementById('api-url');
-        const keyInput = document.getElementById('api-key');
-        const toggleBtn = document.getElementById('toggle-btn');
+        // ===== Hardcoded Config =====
+        const API_URL = "https://wasel-saas-engine-112458895076.europe-west1.run.app/api/v1/translate";
+        const API_KEY = "dx_egypt_key_2026";
 
-        let engineRunning = false;
-        let isReflecting = false; // Is bot thinking?
-        let currentLoop = null;
+        // ===== DOM =====
+        const vid = document.getElementById('vid');
+        const c = document.getElementById('c');
+        const ctx = c.getContext('2d');
+        const liveText = document.getElementById('liveText');
+        const chat = document.getElementById('chat');
+        const mainBtn = document.getElementById('mainBtn');
 
-        // 1. Start Camera
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
-            .then(s => {
-                video.srcObject = s;
-                statusEl.textContent = "الكاميرا جاهزة. اضغط للبدء.";
-                statusEl.style.color = "white";
-            }).catch(e => {
-                statusEl.textContent = "خطأ في الكاميرا";
-                statusEl.style.color = "red";
-            });
+        let running = false;
+        let botBusy = false;
 
-        // Add message to chat UI
-        function addMessage(text, sender) {
-            const div = document.createElement("div");
-            div.className = `msg ${sender}`;
-            div.textContent = text;
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+        // ===== Camera =====
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
+            .then(s => { vid.srcObject = s; })
+            .catch(() => { liveText.textContent = "خطأ في الكاميرا"; });
+
+        // ===== Helpers =====
+        function addMsg(text, who) {
+            const d = document.createElement('div');
+            d.className = 'msg ' + who;
+            d.textContent = text;
+            chat.appendChild(d);
+            chat.scrollTop = chat.scrollHeight;
         }
 
-        // Send local API request to our customer service bot (Flask)
-        async function replyAsCustomerService(userSignLangText) {
-            if (isReflecting) return;
-            isReflecting = true;
-            statusEl.textContent = "جاري تحضير رد الموظف...";
-
-            try {
-                let res = await fetch("/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: userSignLangText })
-                });
-                let data = await res.json();
-                if (data.reply) {
-                    addMessage(data.reply, "bot");
-                }
-            } catch (e) {
-                console.error("Bot Error", e);
-            } finally {
-                isReflecting = false;
+        function setLive(text, isSign) {
+            liveText.textContent = text;
+            if (isSign) {
+                liveText.classList.remove('waiting');
+            } else {
+                liveText.classList.add('waiting');
             }
         }
 
-        // Capture motion chunk (3 frames over 1 second)
-        async function captureMotionChunk() {
+        // ===== Capture 3 frames (motion chunk) =====
+        async function grabFrames() {
             let frames = [];
             for (let i = 0; i < 3; i++) {
-                ctx.drawImage(video, 0, 0, 512, 512);
-                let b64 = canvas.toDataURL('image/jpeg', 0.6);
-                frames.push(b64);
-                // wait 300ms between frames
-                if (i < 2) await new Promise(r => setTimeout(r, 330));
+                ctx.drawImage(vid, 0, 0, 512, 512);
+                frames.push(canvas.toDataURL('image/jpeg', 0.5));
+                if (i < 2) await new Promise(r => setTimeout(r, 300));
             }
             return frames;
         }
 
-        // Background loop to poll the Wasel SaaS Engine
-        async function engineLoop() {
-            if (!engineRunning) return;
+        // ===== Ask chatbot to respond =====
+        async function askBot(signText) {
+            if (botBusy) return;
+            botBusy = true;
+            try {
+                let r = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: signText })
+                });
+                let d = await r.json();
+                if (d.reply) addMsg(d.reply, 'bot');
+            } catch (e) { console.error(e); }
+            finally { botBusy = false; }
+        }
 
-            if (isReflecting) {
-                // If bot is answering, skip capturing to avoid overlapping chat
-                setTimeout(engineLoop, 1000);
+        // ===== Main Loop =====
+        async function loop() {
+            if (!running) return;
+
+            if (botBusy) {
+                setTimeout(loop, 800);
                 return;
             }
 
-            statusEl.textContent = "جاري التقاط الإشارة...";
-            statusEl.style.color = "#00ff88";
-
             try {
-                // Feature: Dynamic Motion Support - Extract array of frames
-                // This utilizes the newly built "images_base64" in Wasel Engine
-                let framesChunk = await captureMotionChunk();
+                // Capture 3 sequential frames
+                let frames = [];
+                for (let i = 0; i < 3; i++) {
+                    ctx.drawImage(vid, 0, 0, 512, 512);
+                    frames.push(c.toDataURL('image/jpeg', 0.5));
+                    if (i < 2) await new Promise(r => setTimeout(r, 300));
+                }
 
-                statusEl.textContent = "جاري الترجمة السحابية...";
+                // Send to Wasel SaaS Engine
+                let ac = new AbortController();
+                let tid = setTimeout(() => ac.abort(), 5000);
 
-                let abt = new AbortController();
-                let tid = setTimeout(() => abt.abort(), 4000); // 4 sec timeout
-
-                let res = await fetch(urlInput.value, {
+                let res = await fetch(API_URL, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-API-Key': keyInput.value
+                        'X-API-Key': API_KEY
                     },
-                    body: JSON.stringify({ images_base64: framesChunk }),
-                    signal: abt.signal
+                    body: JSON.stringify({ images_base64: frames }),
+                    signal: ac.signal
                 });
 
                 clearTimeout(tid);
 
                 if (res.status === 204) {
-                    // No Content = No Sign Detected (...)
-                    statusEl.textContent = "في انتظار الإشارة...";
+                    // No sign detected
+                    setLive("في انتظار إشارة ...", false);
                 } else if (res.status === 200) {
                     let data = await res.json();
-                    let translation = data.translation;
-
-                    if (translation && translation !== "..." && translation.length > 1) {
-                        statusEl.textContent = `تم التقاط: ${translation}`;
-                        addMessage("إشارة: " + translation, "user");
-
-                        // Let the bot answer the user
-                        replyAsCustomerService(translation);
+                    let t = data.translation;
+                    if (t && t !== "..." && t.trim().length > 0) {
+                        // Show translation on video overlay
+                        setLive(t, true);
+                        // Add to chat log
+                        addMsg("🤟 " + t, 'user');
+                        // Get bot response
+                        askBot(t);
+                    } else {
+                        setLive("في انتظار إشارة ...", false);
                     }
-                } else {
-                    statusEl.textContent = "خطأ من الخادم (SaaS)";
-                    statusEl.style.color = "red";
                 }
             } catch (e) {
                 if (e.name === 'AbortError') {
-                    statusEl.textContent = "بطء في الشبكة (Timeout)";
-                    statusEl.style.color = "orange";
+                    setLive("بطء في الشبكة...", false);
                 } else {
-                    console.error("Engine fetch error", e);
+                    console.error("Loop error:", e);
                 }
             }
 
-            // Loop smoothly
-            if (engineRunning) {
-                setTimeout(engineLoop, 500); // 500ms pause between chunks
-            }
+            if (running) setTimeout(loop, 500);
         }
 
-        function toggleEngine() {
-            engineRunning = !engineRunning;
-            if (engineRunning) {
-                toggleBtn.textContent = "إيقاف";
-                toggleBtn.style.background = "#333";
-                engineLoop();
+        // ===== Toggle =====
+        function toggle() {
+            running = !running;
+            if (running) {
+                mainBtn.textContent = "⏹ إيقاف";
+                mainBtn.className = "btn btn-stop";
+                setLive("في انتظار إشارة ...", false);
+                loop();
             } else {
-                toggleBtn.textContent = "ابدأ الترجمة";
-                toggleBtn.style.background = "var(--primary)";
-                statusEl.textContent = "الترجمة متوقفة";
-                statusEl.style.color = "white";
+                mainBtn.textContent = "▶ تشغيل الترجمة";
+                mainBtn.className = "btn btn-start";
+                setLive("الترجمة متوقفة", false);
             }
         }
     </script>
