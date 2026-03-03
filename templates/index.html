@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-width=1.0">
+    <title>مصر الرقمية — خدمة العملاء (لغة الإشارة)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #A31B21;
+            /* Digital Egypt Red */
+            --bg: #F5F7FA;
+            --chat-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--bg);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: #fff;
+            border-left: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .header {
+            background: var(--primary);
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 1.2rem;
+        }
+
+        .header p {
+            margin: 5px 0 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .msg {
+            max-width: 85%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .bot {
+            background: #f1f3f5;
+            align-self: flex-start;
+            border-top-right-radius: 0;
+        }
+
+        .user {
+            background: var(--primary);
+            color: #fff;
+            align-self: flex-end;
+            border-top-left-radius: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 30px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .video-container {
+            width: 100%;
+            max-width: 600px;
+            background: #000;
+            border-radius: 16px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        video {
+            width: 100%;
+            display: block;
+            transform: scaleX(-1);
+        }
+
+        .status {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #00ff88;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            max-width: 600px;
+        }
+
+        input,
+        button {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        input {
+            flex: 1;
+            font-size: 1rem;
+        }
+
+        button {
+            background: var(--primary);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 24px;
+        }
+
+        button:disabled {
+            background: #999;
+        }
+
+        .powered-by {
+            margin-top: 30px;
+            color: #777;
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Chat Sidebar -->
+    <div class="sidebar">
+        <div class="header">
+            <h2>مصر الرقمية (Digital Egypt)</h2>
+            <p>مساعد خدمة العملاء بلغة الإشارة</p>
+        </div>
+        <div class="chat-box" id="chat">
+            <div class="msg bot">مرحباً بك في مصر الرقمية. كيف يمكنني مساعدتك اليوم؟ (تفضل بعمل لغة إشارة أمام الكاميرا)
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Video Section -->
+    <div class="main-content">
+        <div class="video-container">
+            <video id="vid" autoplay playsinline muted></video>
+            <div class="status" id="status">جاري بدء الكاميرا...</div>
+        </div>
+
+        <div class="controls">
+            <input type="text" id="api-url" value="http://localhost:8000/api/v1/translate"
+                placeholder="Wasel SaaS API URL">
+            <input type="password" id="api-key" value="demo_client_key_123" placeholder="SaaS API Key">
+            <button id="toggle-btn" onclick="toggleEngine()">ابدأ الترجمة</button>
+        </div>
+        <div class="powered-by">Powered by <b>Wasel Core AI Engine (B2B SaaS)</b></div>
+    </div>
+
+    <!-- Hidden Canvas for capture -->
+    <canvas id="canvas" width="512" height="512" style="display:none;"></canvas>
+
+    <script>
+        const video = document.getElementById('vid');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const statusEl = document.getElementById('status');
+        const chatBox = document.getElementById('chat');
+        const urlInput = document.getElementById('api-url');
+        const keyInput = document.getElementById('api-key');
+        const toggleBtn = document.getElementById('toggle-btn');
+
+        let engineRunning = false;
+        let isReflecting = false; // Is bot thinking?
+        let currentLoop = null;
+
+        // 1. Start Camera
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } })
+            .then(s => {
+                video.srcObject = s;
+                statusEl.textContent = "الكاميرا جاهزة. اضغط للبدء.";
+                statusEl.style.color = "white";
+            }).catch(e => {
+                statusEl.textContent = "خطأ في الكاميرا";
+                statusEl.style.color = "red";
+            });
+
+        // Add message to chat UI
+        function addMessage(text, sender) {
+            const div = document.createElement("div");
+            div.className = `msg ${sender}`;
+            div.textContent = text;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        // Send local API request to our customer service bot (Flask)
+        async function replyAsCustomerService(userSignLangText) {
+            if (isReflecting) return;
+            isReflecting = true;
+            statusEl.textContent = "جاري تحضير رد الموظف...";
+
+            try {
+                let res = await fetch("/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: userSignLangText })
+                });
+                let data = await res.json();
+                if (data.reply) {
+                    addMessage(data.reply, "bot");
+                }
+            } catch (e) {
+                console.error("Bot Error", e);
+            } finally {
+                isReflecting = false;
+            }
+        }
+
+        // Capture motion chunk (3 frames over 1 second)
+        async function captureMotionChunk() {
+            let frames = [];
+            for (let i = 0; i < 3; i++) {
+                ctx.drawImage(video, 0, 0, 512, 512);
+                let b64 = canvas.toDataURL('image/jpeg', 0.6);
+                frames.push(b64);
+                // wait 300ms between frames
+                if (i < 2) await new Promise(r => setTimeout(r, 330));
+            }
+            return frames;
+        }
+
+        // Background loop to poll the Wasel SaaS Engine
+        async function engineLoop() {
+            if (!engineRunning) return;
+
+            if (isReflecting) {
+                // If bot is answering, skip capturing to avoid overlapping chat
+                setTimeout(engineLoop, 1000);
+                return;
+            }
+
+            statusEl.textContent = "جاري التقاط الإشارة...";
+            statusEl.style.color = "#00ff88";
+
+            try {
+                // Feature: Dynamic Motion Support - Extract array of frames
+                // This utilizes the newly built "images_base64" in Wasel Engine
+                let framesChunk = await captureMotionChunk();
+
+                statusEl.textContent = "جاري الترجمة السحابية...";
+
+                let abt = new AbortController();
+                let tid = setTimeout(() => abt.abort(), 4000); // 4 sec timeout
+
+                let res = await fetch(urlInput.value, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': keyInput.value
+                    },
+                    body: JSON.stringify({ images_base64: framesChunk }),
+                    signal: abt.signal
+                });
+
+                clearTimeout(tid);
+
+                if (res.status === 204) {
+                    // No Content = No Sign Detected (...)
+                    statusEl.textContent = "في انتظار الإشارة...";
+                } else if (res.status === 200) {
+                    let data = await res.json();
+                    let translation = data.translation;
+
+                    if (translation && translation !== "..." && translation.length > 1) {
+                        statusEl.textContent = `تم التقاط: ${translation}`;
+                        addMessage("إشارة: " + translation, "user");
+
+                        // Let the bot answer the user
+                        replyAsCustomerService(translation);
+                    }
+                } else {
+                    statusEl.textContent = "خطأ من الخادم (SaaS)";
+                    statusEl.style.color = "red";
+                }
+            } catch (e) {
+                if (e.name === 'AbortError') {
+                    statusEl.textContent = "بطء في الشبكة (Timeout)";
+                    statusEl.style.color = "orange";
+                } else {
+                    console.error("Engine fetch error", e);
+                }
+            }
+
+            // Loop smoothly
+            if (engineRunning) {
+                setTimeout(engineLoop, 500); // 500ms pause between chunks
+            }
+        }
+
+        function toggleEngine() {
+            engineRunning = !engineRunning;
+            if (engineRunning) {
+                toggleBtn.textContent = "إيقاف";
+                toggleBtn.style.background = "#333";
+                engineLoop();
+            } else {
+                toggleBtn.textContent = "ابدأ الترجمة";
+                toggleBtn.style.background = "var(--primary)";
+                statusEl.textContent = "الترجمة متوقفة";
+                statusEl.style.color = "white";
+            }
+        }
+    </script>
+</body>
+
+</html>
