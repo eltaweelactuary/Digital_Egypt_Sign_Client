@@ -10,7 +10,6 @@
         :root {
             --red: #A31B21;
             --dark: #1a1a2e;
-            --glass: rgba(255, 255, 255, 0.08);
         }
 
         * {
@@ -27,7 +26,6 @@
             display: flex;
         }
 
-        /* === LEFT: Video + Translation === */
         .video-side {
             flex: 1;
             display: flex;
@@ -65,36 +63,29 @@
             transform: scaleX(-1);
         }
 
-        /* Live translation overlay on the video */
         .translation-overlay {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            background: linear-gradient(transparent, rgba(0, 0, 0, 0.85));
+            background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
             padding: 30px 20px 20px;
             text-align: center;
         }
 
         .translation-text {
-            font-size: 2rem;
+            font-size: 2.2rem;
             font-weight: 700;
             color: #00ff88;
             text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
-            min-height: 40px;
+            min-height: 45px;
             transition: all 0.3s ease;
         }
 
         .translation-text.waiting {
-            color: rgba(255, 255, 255, 0.4);
-            font-size: 1.2rem;
+            color: rgba(255, 255, 255, 0.35);
+            font-size: 1.1rem;
             font-weight: 400;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            align-items: center;
         }
 
         .btn {
@@ -128,7 +119,6 @@
             font-size: 0.8rem;
         }
 
-        /* === RIGHT: Chat Log === */
         .chat-side {
             width: 380px;
             background: rgba(255, 255, 255, 0.03);
@@ -201,8 +191,6 @@
 </head>
 
 <body>
-
-    <!-- Chat Sidebar -->
     <div class="chat-side">
         <div class="chat-header">
             <h2>سجل المحادثة</h2>
@@ -213,49 +201,42 @@
         </div>
     </div>
 
-    <!-- Video + Live Translation -->
     <div class="video-side">
         <div class="brand">🇪🇬 مصر الرقمية <span>| خدمة العملاء</span></div>
-
         <div class="video-wrap">
             <video id="vid" autoplay playsinline muted></video>
             <div class="translation-overlay">
-                <div class="translation-text waiting" id="liveText">في انتظار إشارة ...</div>
+                <div class="translation-text waiting" id="liveText">اضغط تشغيل للبدء</div>
             </div>
         </div>
-
-        <div class="controls">
+        <div>
             <button class="btn btn-start" id="mainBtn" onclick="toggle()">▶ تشغيل الترجمة</button>
         </div>
         <div class="powered">Powered by Wasel Core AI Engine (SaaS)</div>
     </div>
 
-    <canvas id="c" width="512" height="512" style="display:none"></canvas>
+    <canvas id="cv" width="512" height="512" style="display:none"></canvas>
 
     <script>
-        // ===== Hardcoded Config =====
-        const API_URL = "https://wasel-saas-engine-112458895076.europe-west1.run.app/api/v1/translate";
-        const API_KEY = "dx_egypt_key_2026";
+        var API_URL = "https://wasel-saas-engine-112458895076.europe-west1.run.app/api/v1/translate";
+        var API_KEY = "dx_egypt_key_2026";
 
-        // ===== DOM =====
-        const vid = document.getElementById('vid');
-        const c = document.getElementById('c');
-        const ctx = c.getContext('2d');
-        const liveText = document.getElementById('liveText');
-        const chat = document.getElementById('chat');
-        const mainBtn = document.getElementById('mainBtn');
+        var vid = document.getElementById('vid');
+        var cv = document.getElementById('cv');
+        var cx = cv.getContext('2d');
+        var liveText = document.getElementById('liveText');
+        var chat = document.getElementById('chat');
+        var mainBtn = document.getElementById('mainBtn');
 
-        let running = false;
-        let botBusy = false;
+        var running = false;
+        var botBusy = false;
 
-        // ===== Camera =====
         navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } })
-            .then(s => { vid.srcObject = s; })
-            .catch(() => { liveText.textContent = "خطأ في الكاميرا"; });
+            .then(function (s) { vid.srcObject = s; })
+            .catch(function () { liveText.textContent = "خطأ في الكاميرا"; });
 
-        // ===== Helpers =====
         function addMsg(text, who) {
-            const d = document.createElement('div');
+            var d = document.createElement('div');
             d.className = 'msg ' + who;
             d.textContent = text;
             chat.appendChild(d);
@@ -271,96 +252,93 @@
             }
         }
 
-        // ===== Capture 3 frames (motion chunk) =====
-        async function grabFrames() {
-            let frames = [];
-            for (let i = 0; i < 3; i++) {
-                ctx.drawImage(vid, 0, 0, 512, 512);
-                frames.push(canvas.toDataURL('image/jpeg', 0.5));
-                if (i < 2) await new Promise(r => setTimeout(r, 300));
-            }
-            return frames;
-        }
-
-        // ===== Ask chatbot to respond =====
-        async function askBot(signText) {
+        function askBot(signText) {
             if (botBusy) return;
             botBusy = true;
-            try {
-                let r = await fetch("/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: signText })
-                });
-                let d = await r.json();
-                if (d.reply) addMsg(d.reply, 'bot');
-            } catch (e) { console.error(e); }
-            finally { botBusy = false; }
+            fetch("/chat", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ text: signText })
+            })
+                .then(function (r) { return r.json(); })
+                .then(function (d) { if (d.reply) addMsg(d.reply, 'bot'); })
+                .catch(function (e) { console.error(e); })
+                .finally(function () { botBusy = false; });
         }
 
-        // ===== Main Loop =====
-        async function loop() {
+        function loop() {
+            if (!running) return;
+            if (botBusy) { setTimeout(loop, 500); return; }
+
+            // Capture 2 frames for motion detection (fast)
+            var frames = [];
+            var captureIndex = 0;
+
+            function captureNext() {
+                if (!running) return;
+                cx.drawImage(vid, 0, 0, 512, 512);
+                frames.push(cv.toDataURL('image/jpeg', 0.4));
+                captureIndex++;
+
+                if (captureIndex < 2) {
+                    setTimeout(captureNext, 200);
+                } else {
+                    sendFrames(frames);
+                }
+            }
+            captureNext();
+        }
+
+        function sendFrames(frames) {
             if (!running) return;
 
-            if (botBusy) {
-                setTimeout(loop, 800);
-                return;
-            }
+            setLive("جاري التحليل ...", false);
 
-            try {
-                // Capture 3 sequential frames
-                let frames = [];
-                for (let i = 0; i < 3; i++) {
-                    ctx.drawImage(vid, 0, 0, 512, 512);
-                    frames.push(c.toDataURL('image/jpeg', 0.5));
-                    if (i < 2) await new Promise(r => setTimeout(r, 300));
-                }
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", API_URL, true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("X-API-Key", API_KEY);
+            xhr.timeout = 6000;
 
-                // Send to Wasel SaaS Engine
-                let ac = new AbortController();
-                let tid = setTimeout(() => ac.abort(), 5000);
-
-                let res = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-API-Key': API_KEY
-                    },
-                    body: JSON.stringify({ images_base64: frames }),
-                    signal: ac.signal
-                });
-
-                clearTimeout(tid);
-
-                if (res.status === 204) {
-                    // No sign detected
+            xhr.onload = function () {
+                if (xhr.status === 204) {
                     setLive("في انتظار إشارة ...", false);
-                } else if (res.status === 200) {
-                    let data = await res.json();
-                    let t = data.translation;
-                    if (t && t !== "..." && t.trim().length > 0) {
-                        // Show translation on video overlay
-                        setLive(t, true);
-                        // Add to chat log
-                        addMsg("🤟 " + t, 'user');
-                        // Get bot response
-                        askBot(t);
-                    } else {
+                } else if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+                        var t = data.translation;
+                        if (t && t !== "..." && t.trim().length > 0) {
+                            setLive(t, true);
+                            addMsg("🤟 " + t, 'user');
+                            askBot(t);
+                        } else {
+                            setLive("في انتظار إشارة ...", false);
+                        }
+                    } catch (e) {
                         setLive("في انتظار إشارة ...", false);
                     }
-                }
-            } catch (e) {
-                if (e.name === 'AbortError') {
-                    setLive("بطء في الشبكة...", false);
+                } else if (xhr.status === 401) {
+                    setLive("خطأ في المفتاح (API Key)", false);
                 } else {
-                    console.error("Loop error:", e);
+                    setLive("خطأ من المحرك (" + xhr.status + ")", false);
                 }
-            }
 
-            if (running) setTimeout(loop, 500);
+                if (running) setTimeout(loop, 300);
+            };
+
+            xhr.onerror = function () {
+                setLive("خطأ في الاتصال بالمحرك", false);
+                if (running) setTimeout(loop, 1000);
+            };
+
+            xhr.ontimeout = function () {
+                setLive("بطء في الشبكة...", false);
+                if (running) setTimeout(loop, 500);
+            };
+
+            xhr.send(JSON.stringify({ images_base64: frames }));
         }
 
-        // ===== Toggle =====
         function toggle() {
             running = !running;
             if (running) {
